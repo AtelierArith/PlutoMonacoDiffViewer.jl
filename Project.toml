@@ -1,0 +1,10 @@
+name = "PlutoMonacoDiffViewer"
+uuid = "12fda243-8789-48d3-8849-1ded2fb9e123"
+authors = ["Satoshi Terasaki <terasakisatoshi.math@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Pluto = "c3e4b0f8-55cb-11ea-2926-15256bba5781"
+
+[compat]
+Pluto = "0.20.3"
