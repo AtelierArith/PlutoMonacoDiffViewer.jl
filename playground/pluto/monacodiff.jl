@@ -20,12 +20,26 @@ end
 begin
 	using Base64
 	using CodeEvaluation
+	using BenchmarkTools
 end
 
 # ╔═╡ 5dde46e9-4bf4-49bd-9f67-6c5f2489ac3c
 begin
 	using PlutoUI
 	using HypertextLiteral
+end
+
+# ╔═╡ 120c528b-3100-4984-9c58-aa4280b7d90a
+begin
+	using InteractiveUtils
+	
+	function f(x)
+		x > 0 ? x : 0
+	end
+	
+	function g(x)
+		x > zero(x) ? x : zero(x)
+	end
 end
 
 # ╔═╡ 06a6a96f-8da0-4cbf-9cfe-5022d9451cde
@@ -50,6 +64,24 @@ function clean_ansi_escape(s)
 	return s_clean
 end
 
+# ╔═╡ d9003dc0-70e6-4732-be7f-274dbbe38ec7
+@code_warntype f(1.0)
+
+# ╔═╡ 84c169f7-5c75-461c-8643-a7144323c718
+@code_warntype g(1.0)
+
+# ╔═╡ b012c4e0-43a9-40e8-9b4a-e643a4929e89
+# causes type instability
+@benchmark f(x) setup=begin
+	x = rand()
+end samples=1000000
+
+# ╔═╡ 45a8e656-6d6e-45ca-a695-0ea706d24f50
+# type stable implementation
+@benchmark g(x) setup=begin
+	x = rand()
+end samples=1000000
+
 # ╔═╡ e60c2e7e-ed7a-4cbe-a537-5ed1381cb10f
 begin
 	default_code_common = """
@@ -66,12 +98,12 @@ begin
 
 	default_codeA = """
 	# codeA
-	@code_native debuginfo=:none codeA(1.0)
+	@code_llvm debuginfo=:none codeA(1.0)
 	"""
 
 	default_codeB = """
 	# codeB
-	@code_native debuginfo=:none codeB(1.0)
+	@code_llvm debuginfo=:none codeB(1.0)
 	"""
 
 	ui_common = @bind code_common PlutoUI.TextField((84, 10), default=default_code_common)
@@ -172,11 +204,14 @@ end
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CodeEvaluation = "5a076611-96cb-4f02-9d3a-9e309f06f8ff"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
+BenchmarkTools = "~1.5.0"
 CodeEvaluation = "~0.0.1"
 HypertextLiteral = "~0.9.5"
 PlutoUI = "~0.7.60"
@@ -188,7 +223,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.11.1"
 manifest_format = "2.0"
-project_hash = "b0f07b0bb0f14f5ba8f47513b66443a279c3274c"
+project_hash = "a586c8f41d68906ccb9115c3279c4280c1d1a32e"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -207,6 +242,12 @@ version = "1.11.0"
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 version = "1.11.0"
+
+[[deps.BenchmarkTools]]
+deps = ["JSON", "Logging", "Printf", "Profile", "Statistics", "UUIDs"]
+git-tree-sha1 = "f1dff6729bc61f4d49e140da1af55dcd1ac97b2f"
+uuid = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+version = "1.5.0"
 
 [[deps.CodeEvaluation]]
 deps = ["IOCapture", "REPL"]
@@ -382,6 +423,10 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 version = "1.11.0"
 
+[[deps.Profile]]
+uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+version = "1.11.0"
+
 [[deps.REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets", "StyledStrings", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
@@ -485,6 +530,11 @@ version = "17.4.0+2"
 # ╠═cd2d791c-a4b8-11ef-2264-0fa0d581f8c0
 # ╠═5dde46e9-4bf4-49bd-9f67-6c5f2489ac3c
 # ╠═8713d2c3-cf0e-4c45-be06-6ca0ec773d54
+# ╠═120c528b-3100-4984-9c58-aa4280b7d90a
+# ╠═d9003dc0-70e6-4732-be7f-274dbbe38ec7
+# ╠═84c169f7-5c75-461c-8643-a7144323c718
+# ╠═b012c4e0-43a9-40e8-9b4a-e643a4929e89
+# ╠═45a8e656-6d6e-45ca-a695-0ea706d24f50
 # ╠═e60c2e7e-ed7a-4cbe-a537-5ed1381cb10f
 # ╠═3040c341-e0d5-4fef-8091-115bee456d12
 # ╠═4906a5b5-bade-407f-9895-874fbcc02f06
