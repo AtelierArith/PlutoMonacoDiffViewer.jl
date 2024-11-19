@@ -18,6 +18,7 @@ end
 
 # ╔═╡ cd2d791c-a4b8-11ef-2264-0fa0d581f8c0
 begin
+	using Base64
 	using CodeEvaluation
 end
 
@@ -97,11 +98,19 @@ end
 # ╔═╡ b2cad113-37ba-4074-9c81-ddcb1aecbfeb
 @bind outB PlutoUI.TextField((80, 5), default=o2)
 
+# ╔═╡ cb8f1bd7-f2a0-464f-bb48-80b765734364
+begin
+	o1buf = IOBuffer()
+	o2buf = IOBuffer()
+	write(o1buf, o1)
+	write(o2buf, o2)
+	b64o1 = base64encode(String(take!(o1buf)))
+	b64o2 = base64encode(String(take!(o2buf)))
+	nothing
+end
+
 # ╔═╡ 6edbe069-3c4e-461d-acef-effebfc6b001
 begin
-	write("o1.txt", o1)
-	write("o2.txt", o2)
-
 	myjs = """
 function decodeBase64(base64String) {
     const prefix = "data:text/plain;base64,";
@@ -116,8 +125,8 @@ require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-edi
 
 require(['vs/editor/editor.main'], () => {
 	var diffEditor = monaco.editor.createDiffEditor(document.getElementById('mycontainer'));
-	let originalTxt = decodeBase64("$(LocalResource("o1.txt").src)");
-	let modifiedTxt = decodeBase64("$(LocalResource("o2.txt").src)");
+	let originalTxt = decodeBase64("$(b64o1)");
+	let modifiedTxt = decodeBase64("$(b64o2)");
 	console.log(modifiedTxt)
 	diffEditor.setModel({
 		original: monaco.editor.createModel(originalTxt, 'julia'),
@@ -125,6 +134,7 @@ require(['vs/editor/editor.main'], () => {
 	});
 });
 """
+	write("diff.js", myjs)
 end
 
 # ╔═╡ af06ea82-a418-4ca3-b338-11ff638c9b5b
@@ -140,6 +150,7 @@ $(PlutoUI.LocalResource("diff.js"))
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+Base64 = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 CodeEvaluation = "5a076611-96cb-4f02-9d3a-9e309f06f8ff"
 HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
@@ -156,7 +167,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.11.1"
 manifest_format = "2.0"
-project_hash = "799086aed7bdea0daf4257adb0aed1a7605b8319"
+project_hash = "b0f07b0bb0f14f5ba8f47513b66443a279c3274c"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -462,6 +473,7 @@ version = "17.4.0+2"
 # ╠═9a2595e8-c132-49cd-815f-a57fe522c8e8
 # ╠═4906a5b5-bade-407f-9895-874fbcc02f06
 # ╠═b2cad113-37ba-4074-9c81-ddcb1aecbfeb
+# ╠═cb8f1bd7-f2a0-464f-bb48-80b765734364
 # ╠═6edbe069-3c4e-461d-acef-effebfc6b001
 # ╠═af06ea82-a418-4ca3-b338-11ff638c9b5b
 # ╟─00000000-0000-0000-0000-000000000001
