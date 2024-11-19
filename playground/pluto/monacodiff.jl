@@ -41,13 +41,6 @@ max-width: 2000px;
 </style>
 """
 
-# ╔═╡ 2d1352f8-2c5d-4d93-92a2-075a70fe1efb
-begin
-	sb1 = CodeEvaluation.Sandbox()
-	sb2 = CodeEvaluation.Sandbox()
-	nothing
-end
-
 # ╔═╡ 8713d2c3-cf0e-4c45-be06-6ca0ec773d54
 function clean_ansi_escape(s)
 	# Regular expression pattern to match ANSI escape sequences
@@ -57,28 +50,53 @@ function clean_ansi_escape(s)
 	return s_clean
 end
 
-# ╔═╡ 65b10643-f268-49b2-a6b6-da4bb2e3c2fe
-
-
 # ╔═╡ e60c2e7e-ed7a-4cbe-a537-5ed1381cb10f
-@bind code_common PlutoUI.TextField((80, 5), default="# common code\nusing InteractiveUtils")
+begin
+	default_code_common = """
+	using InteractiveUtils
+	
+	function codeA(x)
+		x > 0 ? x : 0
+	end
+	
+	function codeB(x)
+		x > 0 ? x : zero(x)
+	end
+	"""
 
-# ╔═╡ ca0a4824-1490-4043-8a08-f8b38b6e8ef0
-@bind codeA PlutoUI.TextField((80, 5), default="# codeA\n@code_llvm debuginfo=:none sin(2.0f0)")
+	default_codeA = """
+	# codeA
+	@code_native debuginfo=:none codeA(1.0)
+	"""
 
-# ╔═╡ 9253b31b-d479-47dd-8dd7-75e22dfcd1f3
-@bind codeB PlutoUI.TextField((80, 5), default="#codeB\n@code_llvm debuginfo=:none sin(2.0)")
+	default_codeB = """
+	# codeB
+	@code_native debuginfo=:none codeB(1.0)
+	"""
+
+	ui_common = @bind code_common PlutoUI.TextField((84, 10), default=default_code_common)
+	ui_codeA = @bind codeA PlutoUI.TextField((40, 8), default=default_codeA)
+	ui_codeB = @bind codeB PlutoUI.TextField((40, 8), default=default_codeB)
+
+	PlutoUI.ExperimentalLayout.vbox(
+		[
+			ui_common,
+			PlutoUI.ExperimentalLayout.hbox([ui_codeA, Text(" "), ui_codeB])
+		]
+		
+	)
+end
 
 # ╔═╡ 3040c341-e0d5-4fef-8091-115bee456d12
 begin
-	CodeEvaluation.codeblock!(sb1, code_common);
-	r1 = CodeEvaluation.codeblock!(sb1, codeA);
-	CodeEvaluation.codeblock!(sb2, code_common);
-	r2 = CodeEvaluation.codeblock!(sb2, codeB);
-end
+	sb1 = CodeEvaluation.Sandbox()
+	sb2 = CodeEvaluation.Sandbox()
 
-# ╔═╡ 9a2595e8-c132-49cd-815f-a57fe522c8e8
-begin
+	CodeEvaluation.codeblock!(sb1, code_common)
+	r1 = CodeEvaluation.codeblock!(sb1, codeA)
+	CodeEvaluation.codeblock!(sb2, code_common)
+	r2 = CodeEvaluation.codeblock!(sb2, codeB)
+
 	if isnothing(r1.value)
 		o1 = clean_ansi_escape(r1.output)
 	else
@@ -98,20 +116,16 @@ end
 # ╔═╡ b2cad113-37ba-4074-9c81-ddcb1aecbfeb
 @bind outB PlutoUI.TextField((80, 5), default=o2)
 
-# ╔═╡ cb8f1bd7-f2a0-464f-bb48-80b765734364
-begin
+# ╔═╡ 6edbe069-3c4e-461d-acef-effebfc6b001
+function diffjs(o1::String, o2::String)
 	o1buf = IOBuffer()
 	o2buf = IOBuffer()
 	write(o1buf, o1)
 	write(o2buf, o2)
 	b64o1 = base64encode(String(take!(o1buf)))
 	b64o2 = base64encode(String(take!(o2buf)))
-	nothing
-end
-
-# ╔═╡ 6edbe069-3c4e-461d-acef-effebfc6b001
-begin
-	myjs = """
+	
+	diffjstemplate = """
 function decodeBase64(base64String) {
     const prefix = "data:text/plain;base64,";
     if (base64String.startsWith(prefix)) {
@@ -134,18 +148,25 @@ require(['vs/editor/editor.main'], () => {
 	});
 });
 """
-	write("diff.js", myjs)
+	diffjstemplate
 end
 
 # ╔═╡ af06ea82-a418-4ca3-b338-11ff638c9b5b
-@htl """
-<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/loader.js"></script>
-
-<h2>Monaco Diff Editor Sample</h2>
-<div id="mycontainer" style="width: 1300px; height: 500px; border: 1px solid grey"></div>
-$(PlutoUI.LocalResource("diff.js"))
-"""
+begin
+	diffbuf = IOBuffer()
+	write(diffbuf, diffjs(o1,o2))
+	b64diff = base64encode(String(take!(diffbuf)))
+	b64diff = "data:text/javascript;base64,$(b64diff)"
+	write("diff.js", diffjs(o1,o2))
+	@htl """
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/loader.js"></script>
+	
+	<h2>Monaco Diff Editor Sample</h2>
+	<div id="mycontainer" style="width: 1400px; height: 500px; border: 1px solid grey"></div>
+	$(PlutoUI.LocalResource("diff.js"))
+	"""
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -463,17 +484,11 @@ version = "17.4.0+2"
 # ╠═06a6a96f-8da0-4cbf-9cfe-5022d9451cde
 # ╠═cd2d791c-a4b8-11ef-2264-0fa0d581f8c0
 # ╠═5dde46e9-4bf4-49bd-9f67-6c5f2489ac3c
-# ╠═2d1352f8-2c5d-4d93-92a2-075a70fe1efb
 # ╠═8713d2c3-cf0e-4c45-be06-6ca0ec773d54
-# ╠═65b10643-f268-49b2-a6b6-da4bb2e3c2fe
 # ╠═e60c2e7e-ed7a-4cbe-a537-5ed1381cb10f
-# ╠═ca0a4824-1490-4043-8a08-f8b38b6e8ef0
-# ╠═9253b31b-d479-47dd-8dd7-75e22dfcd1f3
 # ╠═3040c341-e0d5-4fef-8091-115bee456d12
-# ╠═9a2595e8-c132-49cd-815f-a57fe522c8e8
 # ╠═4906a5b5-bade-407f-9895-874fbcc02f06
 # ╠═b2cad113-37ba-4074-9c81-ddcb1aecbfeb
-# ╠═cb8f1bd7-f2a0-464f-bb48-80b765734364
 # ╠═6edbe069-3c4e-461d-acef-effebfc6b001
 # ╠═af06ea82-a418-4ca3-b338-11ff638c9b5b
 # ╟─00000000-0000-0000-0000-000000000001
