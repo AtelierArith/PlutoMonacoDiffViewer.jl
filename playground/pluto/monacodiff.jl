@@ -71,7 +71,7 @@ end
 @code_warntype g(1.0)
 
 # ╔═╡ b012c4e0-43a9-40e8-9b4a-e643a4929e89
-# causes type instability
+# this causes type instability
 @benchmark f(x) setup=begin
 	x = rand()
 end samples=1000000
