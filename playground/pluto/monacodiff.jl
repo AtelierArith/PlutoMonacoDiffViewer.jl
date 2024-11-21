@@ -184,7 +184,8 @@ require(['vs/editor/editor.main'], () => {
 end
 
 # ╔═╡ af06ea82-a418-4ca3-b338-11ff638c9b5b
-begin
+#=
+let
 	diffbuf = IOBuffer()
 	write(diffbuf, diffjs(o1,o2))
 	b64diff = base64encode(String(take!(diffbuf)))
@@ -197,6 +198,23 @@ begin
 	<h2>Monaco Diff Editor Sample</h2>
 	<div id="mycontainer" style="width: 1400px; height: 500px; border: 1px solid grey"></div>
 	$(PlutoUI.LocalResource("diff.js"))
+	"""
+end
+=#
+
+# ╔═╡ 0d28ef65-c075-4053-9fb7-2abafc5c5b8b
+let
+	diffbuf = IOBuffer()
+	write(diffbuf, diffjs(o1,o2))
+	b64diff = base64encode(String(take!(diffbuf)))
+	b64diff = "data:text/javascript;base64,$(b64diff)"
+	@htl """
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.0/min/vs/loader.js"></script>
+	
+	<h2>Monaco Diff Editor Sample</h2>
+	<div id="mycontainer" style="width: 1400px; height: 500px; border: 1px solid grey"></div>
+	<script type="text/javascript" src="$(b64diff)"></script>
 	"""
 end
 
@@ -541,5 +559,6 @@ version = "17.4.0+2"
 # ╠═b2cad113-37ba-4074-9c81-ddcb1aecbfeb
 # ╠═6edbe069-3c4e-461d-acef-effebfc6b001
 # ╠═af06ea82-a418-4ca3-b338-11ff638c9b5b
+# ╠═0d28ef65-c075-4053-9fb7-2abafc5c5b8b
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
